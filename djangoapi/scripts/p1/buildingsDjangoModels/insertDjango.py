@@ -22,7 +22,7 @@ def insert(d:dict):
     #saves it into the database
     b.save()
     #prints the asigned id of the object in the database
-    print(b.id)
+    print(b.id) # pyright: ignore[reportAttributeAccessIssue]
 
     ##################################
     #another way to create the object with a dictionary
@@ -35,8 +35,8 @@ def insert(d:dict):
     #   fieldname=fieldvalue parameters from the dictionary
     b2=Buildings(**d)
     b2.save()
-    print(b2.id)
-    return {'ok': True, 'message':'Building inserted', 'data': [{'id':b.id}]}
+    print(b2.id) # pyright: ignore[reportAttributeAccessIssue]
+    return {'ok': True, 'message':'Building inserted', 'data': [{'id':b.id}]} # type: ignore
 
 def insert2(d:dict):
     g=GEOSGeometry(d['geom'], srid=ST_SNAP_PRECISION)
