@@ -1,8 +1,8 @@
-from myLib import p1Settings
-import psycopg
+import p1Settings
+import psycopg2
 
 def connect():
-    conn= psycopg.connect(
+    conn= psycopg2.connect(
         dbname=p1Settings.POSTGRES_DB,
         user=p1Settings.POSTGRES_USER,
         password=p1Settings.POSTGRES_PASSWORD,
