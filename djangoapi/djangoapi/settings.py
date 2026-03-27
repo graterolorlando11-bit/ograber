@@ -81,7 +81,8 @@ INSTALLED_APPS = [
     'buildings',
     'flowers',
     'accidentes',
-    'buildings2'
+    'buildings2',
+    'eval1_ograber'
 ]
 
 MIDDLEWARE = [
@@ -138,10 +139,8 @@ else:
 
 DATABASES = {
     'default': {
-        #ENGINE': 'django.db.backends.postgresql_psycopg2',
-        #required by geodjango
         'ENGINE': 'django.contrib.gis.db.backends.postgis',
-        'NAME': DATABASE_NAME,
+        'NAME': 'exam', 
         'USER': os.getenv('POSTGRES_USER'),
         'PASSWORD': os.getenv('POSTGRES_PASSWORD'),
         'HOST': os.getenv('POSTGRES_HOST'),
