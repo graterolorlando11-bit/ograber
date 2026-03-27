@@ -9,8 +9,8 @@ class Zona(models.Model):
     geom = models.PolygonField(srid=25830)
 
     class Meta:
-        managed = False # Le dice a Django que la tabla ya esta
-        db_table = 'zonas' # El nombre exacto de tu tabla en PostGIS
+        # managed = False # Le dice a Django que la tabla ya esta
+        db_table = 'zonas'
 
 class Camino(models.Model):
     nombre = models.CharField(max_length=100)
@@ -21,7 +21,7 @@ class Camino(models.Model):
     geom = models.LineStringField(srid=25830)
 
     class Meta:
-        managed = False
+        # managed = False
         db_table = 'caminos'
 
 class Arbol(models.Model):
@@ -33,5 +33,5 @@ class Arbol(models.Model):
     geom = models.PointField(srid=25830)
 
     class Meta:
-        managed = False
+        # managed = False
         db_table = 'arboles'
