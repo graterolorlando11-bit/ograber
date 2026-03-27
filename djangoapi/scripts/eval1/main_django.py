@@ -17,7 +17,7 @@ def run():
     # print(caminos_db.insert(camino_nuevo))
     # print(arboles_db.insert(arbol_nuevo))
 
-    # ACTUALIZAMOS ZONAS
+    # # ACTUALIZAMOS ZONAS
     # 1. UPDATE: En nuestro código de Django lo hicimos flexible.
     # Puedes mandarle solo el id y lo que quieres cambiar.
     # zona_para_actualizar = {
@@ -28,13 +28,13 @@ def run():
     # print("--- ACTUALIZANDO CON DJANGO ---")
     # print(zonas_db.update(zona_para_actualizar))
 
-    # ACTUALIZAMOS CAMINOS
-    camino_actualizar = {
-        'id': 5,
-        'nombre': 'PRUEBA_DESWEB'
-    }
-    print("--- ACTUALIZANDO CON DJANGO ---")
-    print(caminos_db.update(camino_actualizar))
+    # # ACTUALIZAMOS CAMINOS
+    # camino_actualizar = {
+    #     'id': 5,
+    #     'nombre': 'PRUEBA_DESWEB'
+    # }
+    # print("--- ACTUALIZANDO CON DJANGO ---")
+    # print(caminos_db.update(camino_actualizar))
 
     # # 2. SELECT: Solo el ID
     # zona_para_ver = {'id': 6}

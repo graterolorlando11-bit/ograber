@@ -60,10 +60,10 @@ def run():
     # print("--- ACTUALIZANDO ÁRBOL ---")
     # print(arboles_db.update(arbol_para_actualizar))
 
-    # 2. SELECT: Solo necesitamos el ID
-    arbol_para_ver = {'id': 1}
-    print("\n--- VIENDO DATOS DEL ÁRBOL ---")
-    print(arboles_db.selectAsDicts(arbol_para_ver))
+    # # 2. SELECT: Solo necesitamos el ID
+    # arbol_para_ver = {'id': 1}
+    # print("\n--- VIENDO DATOS DEL ÁRBOL ---")
+    # print(arboles_db.selectAsDicts(arbol_para_ver))
 
     # 3. DELETE: Solo necesitamos el ID
     # arbol_para_borrar = {'id': 1}
