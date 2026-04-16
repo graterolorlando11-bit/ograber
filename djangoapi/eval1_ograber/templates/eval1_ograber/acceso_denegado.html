@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Acceso Denegado - Eval1 Ograber</title>
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+    <div class="container">
+        <div class="row justify-content-center mt-5">
+            <div class="col-md-6">
+                <div class="card shadow">
+                    <div class="card-body text-center p-5">
+                        <div class="mb-4">
+                            <h1 class="display-1">🚫</h1>
+                            <h2 class="card-title">Acceso Denegado</h2>
+                            <p class="card-text text-muted">
+                                No tienes permisos suficientes para acceder a esta sección.
+                            </p>
+                        </div>
+
+                        <div class="alert alert-warning">
+                            <strong>Sección restringida:</strong> Solo administradores pueden acceder al panel de administración.
+                        </div>
+
+                        <div class="mt-4">
+                            <a href="{% url 'eval1_ograber:mapa' %}" class="btn btn-primary me-2">
+                                🗺️ Ver Mapa
+                            </a>
+                            <a href="{% url 'eval1_ograber:mis_logs' %}" class="btn btn-info me-2">
+                                📊 Mis Logs
+                            </a>
+                            <a href="{% url 'logout' %}" class="btn btn-secondary">
+                                🚪 Salir
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

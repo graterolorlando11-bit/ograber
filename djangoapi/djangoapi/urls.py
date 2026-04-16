@@ -41,4 +41,5 @@ urlpatterns = [
     path('buildings/', include('buildings.urls')),
     path('flowers/', include('flowers.urls')),
     path('accidentes/', include('accidentes.urls')),
+    path('eval1_ograber/', include('eval1_ograber.urls')),
 ]

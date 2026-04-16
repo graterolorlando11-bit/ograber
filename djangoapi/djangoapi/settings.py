@@ -217,7 +217,7 @@ REST_FRAMEWORK = {
 REST_KNOX = {
     #'USER_SERIALIZER':'accounts.serializers.UserSerializer',
     'TOKEN_TTL': timedelta(days=int(os.getenv("DJANGO_SESSION_EXPIRY_DAYS", 1))),
-    'TOKEN_LIMIT_PER_USER':int(os.getenv("TOKEN_LIMIT_PER_USER")),
+    'TOKEN_LIMIT_PER_USER':int(os.getenv("TOKEN_LIMIT_PER_USER", 3)),
 }
 
 #Email

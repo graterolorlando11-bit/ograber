@@ -6,27 +6,40 @@ from django.contrib.auth.models import User
 
 from core.myLib import generalModule
 
-def manageSerializerErrors(serializerErrorsDict:dict, eventsDictToAdd:dict=None)->dict:
+def manageSerializerErrors(serializerErrorsDict, eventsDictToAdd:dict=None)->dict:
     """
     Recibe el diccionario serializer.errors, que puede tener listas o no en los valores.
+    También puede recibir una lista cuando es un ValidationError simple.
     Devuelve un diccionario con los mismos errores, pero sin listas en los valores.
     Si eventsDictToAdd es distinto de None, añade las nuevas claves generadas a este diccionario.
     Crea claves nuevas en el diccionario devuelto que no se repiten para los errores que tenían listas con varios elementos.
-    
+
     Ejemplo:
         serializerErrorsDict = {
             'field1': ['error1'],
             'field2': ['error2-1', 'error2-2'],
         }
+        o
+        serializerErrorsDict = ['Error simple']
+
     Devuelve:
         {
             'field1': 'error1',
             'field2_xdjfmk': 'error2-1',
             'field2_abcd12': 'error2-2',
         }
+        o
+        {
+            'error_abc123': 'Error simple'
+        }
     """
 
     newEventsDict={}
+
+    # Si es una lista (ValidationError simple), convertirla a dict
+    if isinstance(serializerErrorsDict, list):
+        serializerErrorsDict = {'non_field_errors': serializerErrorsDict}
+
     for event_code, event in serializerErrorsDict.items():
         if isinstance(event,list):
             for m in event:

@@ -1,5 +1,5 @@
 #Django imports
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.views import View
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -30,27 +30,139 @@ class HelloWord(View):
         return JsonResponse({"ok":True,"message": "Core. Hello world", "data":[]},status=200)
 
 class LoginView(View):
+    def get(self, request, *args, **kwargs):
+        """Mostrar formulario de login"""
+        if request.user.is_authenticated:
+            return JsonResponse({"ok":True,"message": f"The user {request.user.username} already is authenticated", "data":[{'username':request.user.username}]}, status=200)
+
+        # Mostrar formulario HTML simple
+        html = """
+        <!DOCTYPE html>
+        <html lang="es">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Iniciar Sesión - Eval1 Ograber</title>
+            <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+        </head>
+        <body class="bg-light">
+            <div class="container mt-5">
+                <div class="row justify-content-center">
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header bg-primary text-white">
+                                <h4 class="mb-0">🔐 Iniciar Sesión</h4>
+                            </div>
+                            <div class="card-body">
+                                <form method="post" action="/core/login/">
+                                    {% csrf_token %}
+                                    <div class="mb-3">
+                                        <label for="username" class="form-label">Usuario</label>
+                                        <input type="text" class="form-control" id="username" name="username" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="password" class="form-label">Contraseña</label>
+                                        <input type="password" class="form-control" id="password" name="password" required>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary w-100">Iniciar Sesión</button>
+                                </form>
+
+                                <hr>
+                                <div class="text-center">
+                                    <a href="/eval1_ograber/mapa/" class="btn btn-secondary">Volver al Mapa</a>
+                                </div>
+
+                                <div class="mt-3">
+                                    <h6>Usuarios de prueba:</h6>
+                                    <small class="text-muted">
+                                        • admin / admin123 (Superusuario)<br>
+                                        • usuario_normal / usuario123 (Usuario normal)<br>
+                                        • admin_normal / admin123 (Staff)
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </body>
+        </html>
+        """
+        return HttpResponse(html)
+
     def post(self, request, *args, **kwargs):
         if request.user.is_authenticated:
-            username=request.user.username
-            return JsonResponse({"ok":True,"message": "The user {0} already is authenticated".format(username), "data":[{'username':request.user.username}]}, status=200)
+            return redirect('/eval1_ograber/mapa/')
 
-        username=request.POST.get('username')
-        password=request.POST.get('password')
+        username = request.POST.get('username')
+        password = request.POST.get('password')
         user = authenticate(username=username, password=password)
+
         if user:
-            login(request,user)#introduce into the request cookies the session_id,
-                    # and in the auth_sessions the session data. This way, 
-                    # in followoing requests, know who is the user and if
-                    # he is already authenticated. 
-                    # The coockies are sent in the response header on POST requests
-            return JsonResponse({"ok":True,"message": "User {0} logged in".format(username), "data":[{"username": username}]}, status=200)
+            login(request, user)
+            return redirect('/eval1_ograber/mapa/')
         else:
-            # To make thinks difficult to hackers, you make a random delay,
-            # between 0 and 1 second
-            seconds=random.uniform(0, 1)
+            # Delay para seguridad
+            seconds = random.uniform(0, 1)
             time.sleep(seconds)
-            return JsonResponse({"ok":False,"message": "Wrong user or password", "data":[]},status=400)
+
+            # Mostrar formulario con error
+            html = """
+            <!DOCTYPE html>
+            <html lang="es">
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>Iniciar Sesión - Eval1 Ograber</title>
+                <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+            </head>
+            <body class="bg-light">
+                <div class="container mt-5">
+                    <div class="row justify-content-center">
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header bg-danger text-white">
+                                    <h4 class="mb-0">❌ Error de Inicio de Sesión</h4>
+                                </div>
+                                <div class="card-body">
+                                    <div class="alert alert-danger">
+                                        <strong>Usuario o contraseña incorrectos</strong>
+                                    </div>
+                                    <form method="post" action="/core/login/">
+                                        {% csrf_token %}
+                                        <div class="mb-3">
+                                            <label for="username" class="form-label">Usuario</label>
+                                            <input type="text" class="form-control" id="username" name="username" value="{username}" required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="password" class="form-label">Contraseña</label>
+                                            <input type="password" class="form-control" id="password" name="password" required>
+                                        </div>
+                                        <button type="submit" class="btn btn-primary w-100">Intentar de Nuevo</button>
+                                    </form>
+
+                                    <hr>
+                                    <div class="text-center">
+                                        <a href="/eval1_ograber/mapa/" class="btn btn-secondary">Volver al Mapa</a>
+                                    </div>
+
+                                    <div class="mt-3">
+                                        <h6>Usuarios de prueba:</h6>
+                                        <small class="text-muted">
+                                            • admin / admin123 (Superusuario)<br>
+                                            • usuario_normal / usuario123 (Usuario normal)<br>
+                                            • admin_normal / admin123 (Staff)
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </body>
+            </html>
+            """.format(username=username or "")
+            return HttpResponse(html)
 
 class LogoutView(LoginRequiredMixin, View):
     def post(self, request, *args, **kwargs):
