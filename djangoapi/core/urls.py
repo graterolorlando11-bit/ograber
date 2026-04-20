@@ -10,7 +10,9 @@ urlpatterns = [
     path('', include(router.urls)),
     path('not_loggedin/', views.notLoggedIn, name="not_loggedin"),
     path('login/', views.LoginView.as_view(),name="core_login"),
+    path('registro/', views.RegisterView.as_view(),name="core_register"),
     path('logout/', views.LogoutView.as_view(),name="core_logout"),
+    path('perfil/', views.ProfileView.as_view(),name="core_profile"),
 
     #knox operations with token authentication in the header
     #key: Authorization

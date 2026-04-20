@@ -20,12 +20,19 @@ class ZonasDjango:
             if not g.valid:
                 return {'ok': False, 'message': 'Geometría inválida', 'data': []}
 
-            # 3. Restricción: Comprobar superposición usando Django ORM (st_relate)
-            if Zona.objects.filter(geom__relate=(g, 'T********')).exists():
-                return {'ok': False, 'message': f"La zona {d['nombre']} se superpone", 'data': []}
+            # 3. Restricción: Comprobar superposición usando ST_Overlaps
+            cur.execute(f"SELECT COUNT(*) FROM {Zona._meta.db_table} WHERE ST_Overlaps(geom, ST_GeomFromText(%s, 25830))", [g.wkt])
+            if cur.fetchone()[0] > 0:
+                return {'ok': False, 'message': f"La zona {d.get('nombre', '')} se superpone", 'data': []}
 
-            # 4. Insertar en la base de datos
+            # Metric calculation via coordinate transformation (ETRS89 UTM 30N)
+            g_4326 = GEOSGeometry(geom_snapped, srid=4326)
+            g_metric = g_4326.transform(25830, clone=True)
+
+            # 4. Asignación algorítmica forzosa y guardado
             d['geom'] = g 
+            d['area'] = round(g_metric.area, 2)
+            d['perimetro'] = round(g_metric.length, 2)
             nueva_zona = Zona(**d) 
             nueva_zona.save()      
             
@@ -43,9 +50,18 @@ class ZonasDjango:
                 g = GEOSGeometry(cur.fetchone()[0], srid=25830)
 
                 # Comprobamos solapamiento excluyendo la propia zona
-                if Zona.objects.filter(geom__relate=(g, 'T********')).exclude(id=d['id']).exists():
+                cur.execute(f"SELECT COUNT(*) FROM {Zona._meta.db_table} WHERE id != %s AND ST_Overlaps(geom, ST_GeomFromText(%s, 25830))", [d['id'], g.wkt])
+                if cur.fetchone()[0] > 0:
                     return {'ok': False, 'message': 'La zona se superpone', 'data': []}
+                
+                # Transform to compute metrics
+                g_4326 = GEOSGeometry(cur.fetchone()[0] if 'cur.fetchone()[0]' in locals() else d['geom'], srid=4326)
+                # Note: cur.fetchone() is consumed from the overlapping query! We must use the original g
+                g_metric = GEOSGeometry(g.wkb, srid=4326).transform(25830, clone=True)
+
                 zona.geom = g
+                zona.area = round(g_metric.area, 2)
+                zona.perimetro = round(g_metric.length, 2)
 
             if 'nombre' in d: zona.nombre = d['nombre']
             if 'tipo' in d: zona.tipo = d['tipo']

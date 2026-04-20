@@ -210,7 +210,10 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly'
     ],
-    'DEFAULT_AUTHENTICATION_CLASSES': ('knox.auth.TokenAuthentication',),
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'eval1_ograber.auth.CsrfExemptSessionAuthentication',
+        'knox.auth.TokenAuthentication',
+    ),
     'EXCEPTION_HANDLER': 'core.myLib.drf.custom_exception_handler',
 }
 

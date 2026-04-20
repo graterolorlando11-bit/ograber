@@ -21,7 +21,7 @@ class ArbolesDjango:
 
             # 2. Restricción: El árbol debe estar DENTRO de una zona
             if not Zona.objects.filter(geom__contains=g).exists():
-                return {'ok': False, 'message': f"El árbol {d['especie']} está fuera de las zonas", 'data': []}
+                return {'ok': False, 'message': f"El árbol {d.get('especie','')} está fuera de las zonas", 'data': []}
 
             # 3. Guardar
             d['geom'] = g 

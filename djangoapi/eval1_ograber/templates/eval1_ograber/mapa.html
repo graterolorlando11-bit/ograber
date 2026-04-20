@@ -3,270 +3,519 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Visor Geoespacial - Valencia, España</title>
+    <title>Visor Geoespacial - Valencia</title>
 
-    <!-- Leaflet CSS -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-
-    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css"/>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
 
     <style>
-        body {
-            margin: 0;
-            padding: 0;
-            font-family: Arial, sans-serif;
-        }
-
-        #map {
-            height: calc(100vh - 60px);
-            width: 100%;
-        }
-
-        .navbar {
-            height: 60px;
-        }
-
+        body { margin: 0; padding: 0; font-family: 'Inter', sans-serif; background-color: #f8f9fa;}
+        #map { height: calc(100vh - 60px); width: 100%; z-index: 1;}
+        .navbar { height: 60px; background: linear-gradient(90deg, #1a0b2e, #432874) !important; font-weight:600; }
+        
         .info-panel {
-            position: absolute;
-            top: 80px;
-            right: 10px;
-            width: 300px;
-            background: white;
-            padding: 15px;
-            border-radius: 5px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.2);
-            z-index: 1000;
-            max-height: calc(100vh - 100px);
-            overflow-y: auto;
+            position: absolute; top: 80px; right: 20px; width: 340px;
+            background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.5); border-radius: 15px; padding: 20px; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2); z-index: 1000; max-height: calc(100vh - 120px); 
+            overflow-y: auto; transition: all 0.3s ease;
         }
 
-        .feature-info {
-            margin-bottom: 10px;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 3px;
-        }
-
-        .zona-style { color: #3388ff; weight: 2; opacity: 0.7; fillOpacity: 0.3; }
-        .camino-style { color: #ff6600; weight: 4; }
-        .arbol-marker { background-color: #28a745; }
+        .info-panel h5 { font-weight: 800; color: #432874; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 1px; font-size: 1rem;}
+        .feature-info { background: rgba(0, 0, 0, 0.03); padding: 15px; border-radius: 10px; margin-bottom: 15px; }
+        .feature-info p { margin-bottom: 8px; font-size: 0.9rem; }
+        .feature-info strong { color: #2d1b4e; }
 
         .legend {
-            position: absolute;
-            bottom: 20px;
-            left: 10px;
-            background: white;
-            padding: 10px;
-            border-radius: 5px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.2);
+            position: absolute; bottom: 30px; left: 20px;
+            background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px);
+            padding: 15px; border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); z-index: 1000;
         }
-
-        .legend-item {
-            display: flex;
-            align-items: center;
-            margin-bottom: 5px;
-        }
-
-        .legend-color {
-            width: 20px;
-            height: 20px;
-            margin-right: 10px;
-            border-radius: 3px;
-        }
+        .legend h6 { font-weight: 800; margin-bottom: 10px; color: #432874; }
+        .legend-item { display: flex; align-items: center; margin-bottom: 8px; font-size: 0.85rem;}
+        .legend-color { width: 16px; height: 16px; margin-right: 12px; border-radius: 4px; }
+        .arbol-marker { background: transparent; font-size: 20px; line-height: 20px; text-align: center; }
+        .action-btn { width: 100%; margin-top: 10px; font-weight: 600; font-size: 0.9rem; border-radius: 8px;}
+        
+        /* Modal Glass */
+        .modal-content { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); border-radius: 15px; border:none; box-shadow: 0 20px 40px rgba(0,0,0,0.3);}
+        .modal-header { border-bottom: 1px solid rgba(0,0,0,0.1); }
+        .modal-footer { border-top: 1px solid rgba(0,0,0,0.1); }
+        .form-control { border-radius: 8px; background: #f1f3f5; border: none; }
+        .form-control:focus { background: white; border: 1px solid #a067ff; box-shadow: 0 0 0 0.25rem rgba(160, 103, 255, 0.25); }
     </style>
 </head>
 <body>
-    <!-- Navbar -->
+
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <div class="container-fluid">
-            <a class="navbar-brand" href="#">🌍 Valencia - Visor Geoespacial</a>
-
+            <a class="navbar-brand" href="#">🌍 Visor Valencia</a>
             <div class="d-flex">
                 {% if user %}
-                <span class="navbar-text me-3">
-                    Usuario: {{ user.username }}
-                </span>
-
+                <span class="navbar-text me-3 text-light">Hola, {{ user.username }}</span>
                 {% if is_admin %}
-                <a href="{% url 'eval1_ograber:admin_panel' %}" class="btn btn-warning btn-sm me-2">Admin Panel</a>
-                {% endif %}
-
-                <a href="{% url 'eval1_ograber:mis_logs' %}" class="btn btn-info btn-sm me-2">Mis Logs</a>
-                <a href="{% url 'logout' %}" class="btn btn-secondary btn-sm">Salir</a>
+                <span class="badge bg-danger d-flex align-items-center me-3 px-3">Modo Admin ⚙️</span>
                 {% else %}
-                <a href="{% url 'core_login' %}" class="btn btn-primary btn-sm me-2">Iniciar Sesión</a>
-                <span class="navbar-text me-3 text-light">
-                    Modo invitado - Funcionalidad limitada
-                </span>
+                <span class="badge bg-secondary d-flex align-items-center me-3 px-3">Invitado (Solo Lectura)</span>
+                {% endif %}
+                <a href="{% url 'core_profile' %}" class="btn btn-outline-info btn-sm d-flex align-items-center me-2" style="height: 32px">👤 Perfil</a>
+                <a href="{% url 'core_logout' %}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();" class="btn btn-outline-light btn-sm d-flex align-items-center" style="height: 32px">Salir</a>
+                <form id="logout-form" action="{% url 'core_logout' %}" method="POST" style="display: none;">{% csrf_token %}</form>
+                {% else %}
+                <a href="{% url 'core_login' %}" class="btn btn-light btn-sm text-primary me-2 fw-bold">Iniciar Sesión</a>
+                <a href="{% url 'core_register' %}" class="btn btn-outline-light btn-sm">Registrarse</a>
                 {% endif %}
             </div>
         </div>
     </nav>
 
-    <!-- Mapa -->
     <div id="map"></div>
 
-    <!-- Panel de información -->
     <div class="info-panel" id="info-panel">
-        <h5>Información del Elemento</h5>
+        <h5>Detalles del Elemento</h5>
         <div id="feature-info">
-            <p class="text-muted">Haz clic en un elemento del mapa para ver detalles</p>
+            <p class="text-muted" style="font-size: 0.9rem;">Haz clic sobre algún polígono, línea o marcador para inspeccionarlo.</p>
+        </div>
+        <div id="edit-controls" style="display:none; margin-top:15px; border-top: 1px solid rgba(0,0,0,0.1); padding-top: 15px;">
+            <p class="text-danger fw-bold" style="font-size:0.8rem; margin-bottom:5px;">Operaciones DB</p>
+            <button class="btn btn-warning action-btn text-dark mb-2" id="btn-update-feature" style="background: #fb8500; border:none; color:white !important;">✏️ Editar Atributos</button>
+            <button class="btn btn-danger action-btn" id="btn-delete-feature">🗑 Eliminar Registro</button>
         </div>
     </div>
 
     <!-- Leyenda -->
     <div class="legend">
-        <h6>Leyenda</h6>
-        <div class="legend-item">
-            <div class="legend-color" style="background-color: #3388ff;"></div>
-            <span>Zonas</span>
-        </div>
-        <div class="legend-item">
-            <div class="legend-color" style="background-color: #ff6600;"></div>
-            <span>Caminos</span>
-        </div>
-        <div class="legend-item">
-            <div class="legend-color" style="background-color: #28a745;"></div>
-            <span>Árboles</span>
+        <h6>Tipologías</h6>
+        <div class="legend-item"><div class="legend-color" style="background-color: #3388ff; opacity:0.4; border: 2px solid #3388ff;"></div><span>Zonas</span></div>
+        <div class="legend-item"><div class="legend-color" style="background-color: #ff6600;"></div><span>Caminos</span></div>
+        <div class="legend-item"><div class="legend-color" style="background: transparent;">🌳</div><span>Árboles</span></div>
+    </div>
+
+    <!-- Atributos Modal -->
+    <div class="modal fade" id="attributesModal" tabindex="-1" data-bs-backdrop="static">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold text-primary" id="modalTitle">Insertar Atributos</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="modalBodyInputs">
+                    <!-- Dynamic inputs will be injected here via JS -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar Trazo</button>
+                    <button type="button" class="btn btn-success fw-bold" id="btn-save-attributes">Guardar en Base de Datos</button>
+                </div>
+            </div>
         </div>
     </div>
 
-    <!-- Leaflet JS -->
+    <!-- Scripts -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
-    <!-- Bootstrap JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
-        // Obtener el token CSRF para requests POST
-        function getCookie(name) {
+        const getCookie = (name) => {
             let cookieValue = null;
             if (document.cookie && document.cookie !== '') {
                 const cookies = document.cookie.split(';');
                 for (let i = 0; i < cookies.length; i++) {
                     const cookie = cookies[i].trim();
                     if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                        break;
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1)); break;
                     }
                 }
-            }
-            return cookieValue;
-        }
+            } return cookieValue;
+        };
         const csrftoken = getCookie('csrftoken');
+        const IS_ADMIN = {{ is_admin|yesno:"true,false" }};
+        let currentSelectedFeature = null; 
 
-        // Inicializar mapa centrado en Valencia, España
+        // Map setup
         const map = L.map('map').setView([39.4699, -0.3763], 14);
-
-        // Capa base OpenStreetMap
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenStreetMap contributors'
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; OpenStreetMap contributors &copy; CARTO'
         }).addTo(map);
 
-        // Capas para diferentes tipos de elementos
-        const zonasLayer = L.layerGroup().addTo(map);
-        const caminosLayer = L.layerGroup().addTo(map);
-        const arbolesLayer = L.layerGroup().addTo(map);
+        // Feature Groups for mapping data
+        const editableLayers = L.featureGroup().addTo(map);
 
-        // Cargar datos geoespaciales
-        fetch('/eval1_ograber/datos-geo/')
-            .then(response => response.json())
-            .then(data => {
-                data.features.forEach(feature => {
-                    const props = feature.properties;
-                    let layer;
+        // Leaflet Draw Init
+        if (IS_ADMIN) {
+            const drawControl = new L.Control.Draw({
+                draw: {
+                    polygon: { shapeOptions: { color: '#3388ff' } },
+                    polyline: { shapeOptions: { color: '#ff6600', weight: 4 } },
+                    marker: { icon: L.divIcon({ className: 'arbol-marker', html: '🌳', iconSize: [20, 20] }) },
+                    rectangle: false, circle: false, circlemarker: false
+                },
+                edit: {
+                    featureGroup: editableLayers,
+                    remove: false // UI-delete handles deletion natively
+                }
+            });
+            map.addControl(drawControl);
+        }
 
-                    if (props.tipo === 'zona') {
-                        // Crear polígono para zona
-                        layer = L.geoJSON(feature, {
-                            style: { color: '#3388ff', weight: 2, opacity: 0.7, fillOpacity: 0.3 },
-                            onEachFeature: (feature, layer) => {
-                                layer.on('click', () => mostrarInfoZona(props));
-                            }
-                        });
-                        zonasLayer.addLayer(layer);
+        // Popups Form Helper
+        const attributesModal = new bootstrap.Modal(document.getElementById('attributesModal'));
+        let pendingDrawLayer = null;
+        let pendingDrawType = '';
 
-                    } else if (props.tipo === 'camino') {
-                        // Crear línea para camino
-                        layer = L.geoJSON(feature, {
-                            style: { color: '#ff6600', weight: 4 },
-                            onEachFeature: (feature, layer) => {
-                                layer.on('click', () => mostrarInfoCamino(props));
-                            }
-                        });
-                        caminosLayer.addLayer(layer);
+        // API Helpers
+        async function fetchAPI(endpoint, method, payload) {
+            let options = {
+                method: method,
+                credentials: 'same-origin',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                }
+            };
+            if (payload) {
+                options.body = JSON.stringify(payload);
+            }
+            const rsp = await fetch(`/eval1_ograber/${endpoint}/`, options);
+            return rsp;
+        }
 
-                    } else if (props.tipo === 'arbol') {
-                        // Crear marcador para árbol
-                        const coords = feature.geometry.coordinates;
-                        layer = L.marker([coords[1], coords[0]], {
-                            icon: L.divIcon({
-                                className: 'arbol-marker',
-                                html: '🌳',
-                                iconSize: [30, 30],
-                                iconAnchor: [15, 30]
-                            })
-                        });
-                        layer.on('click', () => mostrarInfoArbol(props));
-                        arbolesLayer.addLayer(layer);
-                    }
+        function loadGeoData() {
+            editableLayers.clearLayers();
+            fetch('/eval1_ograber/datos-geo/')
+                .then(r => r.json())
+                .then(data => {
+                    data.features.forEach(feature => {
+                        const props = feature.properties;
+                        
+                        let styleOptions = {};
+                        let endpoint = '';
+                        let isMarker = false;
+
+                        if (props.tipo === 'zona') {
+                            styleOptions = { color: '#3388ff', weight: 2, opacity: 0.7, fillOpacity: 0.3 };
+                            endpoint = 'zonas';
+                        } else if (props.tipo === 'camino') {
+                            styleOptions = { color: '#ff6600', weight: 4 };
+                            endpoint = 'caminos';
+                        } else if (props.tipo === 'arbol') {
+                            isMarker = true;
+                            endpoint = 'arboles';
+                        }
+
+                        if (isMarker) {
+                            const coords = feature.geometry.coordinates;
+                            let marker = L.marker([coords[1], coords[0]], { 
+                                icon: L.divIcon({ className: 'arbol-marker', html: '🌳', iconSize: [20,20], iconAnchor: [10,20] }) 
+                            });
+                            marker.endpointAPI = endpoint;
+                            marker.db_id = props.id;
+                            marker.on('click', () => selectItemClick(props, endpoint));
+                            editableLayers.addLayer(marker);
+                        } else {
+                            let gLayer = L.geoJSON(feature, { style: styleOptions });
+                            gLayer.eachLayer(layer => {
+                                layer.endpointAPI = endpoint;
+                                layer.db_id = props.id;
+                                layer.on('click', () => selectItemClick(props, endpoint));
+                                editableLayers.addLayer(layer);
+                            });
+                        }
+                    });
                 });
-            })
-            .catch(error => {
-                console.error('Error cargando datos:', error);
-                document.getElementById('feature-info').innerHTML =
-                    '<div class="alert alert-danger">Error cargando datos del mapa</div>';
+        }
+        loadGeoData(); // initial fetch
+
+        // Selection Visualizer
+        function selectItemClick(props, layerGroupAPI) {
+            currentSelectedFeature = { ...props, endpointAPI: layerGroupAPI };
+            const pnl = document.getElementById('feature-info');
+            
+            let html = `<div class="feature-info">`;
+            if (layerGroupAPI === 'zonas') {
+                html += `<h6>🏢 Zona</h6><p><strong>DB ID:</strong> ${props.id}</p><p><strong>Nombre:</strong> ${props.nombre}</p><p><strong>Tipo:</strong> ${props.tipo_zona}</p><p><strong>Responsable:</strong> ${props.responsable}</p>`;
+            } else if (layerGroupAPI === 'caminos') {
+                html += `<h6>🛣️ Camino</h6><p><strong>DB ID:</strong> ${props.id}</p><p><strong>Nombre:</strong> ${props.nombre}</p><p><strong>Dificultad:</strong> ${props.dificultad}</p><p><strong>Material:</strong> ${props.material}</p>`;
+            } else {
+                html += `<h6>🌲 Árbol</h6><p><strong>DB ID:</strong> ${props.id}</p><p><strong>Especie:</strong> ${props.especie}</p><p><strong>Altura:</strong> ${props.altura}m</p><p><strong>Estado:</strong> ${props.estado}</p>`;
+            }
+            html += `</div>`;
+            pnl.innerHTML = html;
+
+            if (IS_ADMIN) {
+                document.getElementById('edit-controls').style.display = 'block';
+            }
+        }
+
+        document.getElementById('btn-delete-feature').addEventListener('click', async () => {
+            if(!currentSelectedFeature) return;
+            if(confirm(`¿Estás seguro de eliminar el registro ID ${currentSelectedFeature.id}?`)) {
+                try {
+                    const rsp = await fetchAPI(currentSelectedFeature.endpointAPI + '/' + currentSelectedFeature.id, 'DELETE');
+                    if(rsp.ok || rsp.status === 204 || rsp.status === 200) {
+                        alert('Eliminado de forma exitosa');
+                        document.getElementById('feature-info').innerHTML = '<p class="text-muted">Registro eliminado.</p>';
+                        document.getElementById('edit-controls').style.display = 'none';
+                        currentSelectedFeature = null;
+                        loadGeoData();
+                    } else {
+                        alert(`Error: Servidor devolvió HTTP ${rsp.status}`);
+                    }
+                } catch (e) {
+                    alert('Error en conexión: ' + e.message);
+                }
+            }
+        });
+
+        document.getElementById('btn-update-feature').addEventListener('click', () => {
+            if(!currentSelectedFeature) return;
+            
+            pendingDrawType = '';
+            if (currentSelectedFeature.endpointAPI === 'zonas') pendingDrawType = 'polygon';
+            else if (currentSelectedFeature.endpointAPI === 'caminos') pendingDrawType = 'polyline';
+            else if (currentSelectedFeature.endpointAPI === 'arboles') pendingDrawType = 'marker';
+
+            let modalHTML = `<input type="hidden" id="geoWKT" value="existing_update">`;
+            const isUpdate = true;
+            
+            if(pendingDrawType === 'polygon'){
+                document.getElementById('modalTitle').innerText = isUpdate ? 'Actualizar Zona #' + currentSelectedFeature.id : 'Registrar Nueva Zona';
+                let cTipo = isUpdate ? (currentSelectedFeature.tipo_zona || currentSelectedFeature.tipo || '') : '';
+                modalHTML += `
+                    <div class="mb-3"><label>Nombre <span class="text-danger">*</span></label><input type="text" id="ipt-nombre" class="form-control" value="${isUpdate ? (currentSelectedFeature.nombre || '') : ''}" required></div>
+                    <div class="mb-3"><label>Tipo de Uso <span class="text-muted" style="font-size:0.75rem">(Opcional)</span></label>
+                        <select id="ipt-tipo" class="form-select">
+                            <option value="No especificado" ${cTipo === 'No especificado'? 'selected':''}>No especificado</option>
+                            <option value="Comercial" ${cTipo === 'Comercial'? 'selected':''}>Comercial</option>
+                            <option value="Conservacion" ${cTipo === 'Conservacion'? 'selected':''}>Conservación</option>
+                            <option value="Recreativa" ${cTipo === 'Recreativa'? 'selected':''}>Recreativa</option>
+                            <option value="Otros" ${cTipo === 'Otros'? 'selected':''}>Otros</option>
+                        </select>
+                    </div>
+                    <div class="mb-3"><label>Área (m²) <span class="text-muted" style="font-size:0.75rem">(Autocompletado Servidor)</span></label><input type="number" step="0.01" id="ipt-area" disabled class="form-control" value="${isUpdate ? (currentSelectedFeature.area || '0.00') : ''}" placeholder="Cálculo DB Interno"></div>
+                    <div class="mb-3"><label>Perímetro <span class="text-muted" style="font-size:0.75rem">(Autocompletado Servidor)</span></label><input type="number" step="0.01" id="ipt-perimetro" disabled class="form-control" value="${isUpdate ? (currentSelectedFeature.perimetro || '0.00') : ''}" placeholder="Cálculo DB Interno"></div>
+                    <div class="mb-3"><label>Responsable <span class="text-muted" style="font-size:0.75rem">(Opcional)</span></label><input type="text" id="ipt-resp" class="form-control" value="${isUpdate ? (currentSelectedFeature.responsable || '') : ''}"></div>
+                `;
+            } else if (pendingDrawType === 'polyline'){
+                document.getElementById('modalTitle').innerText = isUpdate ? 'Actualizar Camino #' + currentSelectedFeature.id : 'Registrar Nuevo Camino';
+                let cDif = isUpdate ? (currentSelectedFeature.dificultad || '') : '';
+                modalHTML += `
+                    <div class="mb-3"><label>Nombre <span class="text-danger">*</span></label><input type="text" id="ipt-nombre" class="form-control" value="${isUpdate ? (currentSelectedFeature.nombre || '') : ''}" required></div>
+                    <div class="mb-3"><label>Dificultad <span class="text-muted" style="font-size:0.75rem">(Opcional)</span></label>
+                        <select id="ipt-dif" class="form-select">
+                            <option value="No especificada" ${cDif === 'No especificada'? 'selected':''}>No especificada</option>
+                            <option value="Baja" ${cDif === 'Baja'? 'selected':''}>Baja</option>
+                            <option value="Media" ${cDif === 'Media'? 'selected':''}>Media</option>
+                            <option value="Alta" ${cDif === 'Alta'? 'selected':''}>Alta</option>
+                        </select>
+                    </div>
+                    <div class="mb-3"><label>Longitud (m) <span class="text-muted" style="font-size:0.75rem">(Autocompletado Servidor)</span></label><input type="number" step="0.01" id="ipt-long" disabled class="form-control" value="${isUpdate ? (currentSelectedFeature.longitud || '0.00') : ''}" placeholder="Cálculo DB Interno"></div>
+                    <div class="mb-3"><label>Ancho (m) <span class="text-muted" style="font-size:0.75rem">(Opcional)</span></label><input type="number" step="0.01" id="ipt-ancho" class="form-control" value="${isUpdate ? (currentSelectedFeature.ancho || '') : ''}"></div>
+                    <div class="mb-3"><label>Material <span class="text-muted" style="font-size:0.75rem">(Opcional)</span></label><input type="text" id="ipt-mat" class="form-control" value="${isUpdate ? (currentSelectedFeature.material || '') : ''}" placeholder="Ej. Asfalto"></div>
+                `;
+            } else if (pendingDrawType === 'marker'){
+                document.getElementById('modalTitle').innerText = isUpdate ? 'Actualizar Árbol #' + currentSelectedFeature.id : 'Registrar Nuevo Árbol';
+                let cEst = isUpdate ? (currentSelectedFeature.estado || 'Sano') : 'Sano';
+                modalHTML += `
+                    <div class="mb-3"><label>Especie <span class="text-danger">*</span></label><input type="text" id="ipt-esp" class="form-control" value="${isUpdate ? (currentSelectedFeature.especie || '') : ''}" required></div>
+                    <div class="mb-3"><label>Estado <span class="text-muted" style="font-size:0.75rem">(Opcional)</span></label>
+                        <select id="ipt-est" class="form-select">
+                            <option value="No especificado" ${cEst === 'No especificado'? 'selected':''}>No especificado</option>
+                            <option value="Sano" ${cEst === 'Sano'? 'selected':''}>Sano</option>
+                            <option value="Regular" ${cEst === 'Regular'? 'selected':''}>Regular</option>
+                            <option value="Decadente" ${cEst === 'Decadente'? 'selected':''}>Decadente</option>
+                            <option value="Muerto" ${cEst === 'Muerto'? 'selected':''}>Muerto</option>
+                        </select>
+                    </div>
+                    <div class="row">
+                        <div class="col-4 mb-3"><label>Altura (m) <span class="text-muted" style="font-size:0.7rem">(Op)</span></label><input type="number" step="0.01" id="ipt-alt" class="form-control" value="${isUpdate ? (currentSelectedFeature.altura || '') : ''}"></div>
+                        <div class="col-4 mb-3"><label>Diámetro <span class="text-muted" style="font-size:0.7rem">(Op)</span></label><input type="number" step="0.01" id="ipt-dia" class="form-control" value="${isUpdate ? (currentSelectedFeature.diametro || '') : ''}"></div>
+                        <div class="col-4 mb-3"><label>Edad <span class="text-muted" style="font-size:0.7rem">(Op)</span></label><input type="number" step="1" id="ipt-edad" class="form-control" value="${isUpdate ? (currentSelectedFeature.edad || '') : ''}"></div>
+                    </div>
+                `;
+            }
+            document.getElementById('modalBodyInputs').innerHTML = modalHTML;
+            attributesModal.show();
+        });
+
+        // Edit Physics Events (Draw)
+        map.on(L.Draw.Event.EDITED, async function (e) {
+            let layers = e.layers;
+            let rollbackNeeded = false;
+            let promises = [];
+
+            layers.eachLayer(function (layer) {
+                let wktGeo = '';
+                if(layer instanceof L.Marker) {
+                   wktGeo = generateWKT(layer, 'marker');
+                } else if(layer instanceof L.Polygon) {
+                   wktGeo = generateWKT(layer, 'polygon');
+                } else if(layer instanceof L.Polyline) {
+                   wktGeo = generateWKT(layer, 'polyline');
+                }
+
+                if(!wktGeo || !layer.endpointAPI || !layer.db_id) return;
+
+                let payload = { geom: wktGeo };
+                
+                let p = fetchAPI(`${layer.endpointAPI}/${layer.db_id}`, 'PUT', payload)
+                    .then(async rsp => {
+                        if (!rsp.ok) {
+                            rollbackNeeded = true;
+                            const errJson = await rsp.json();
+                            alert(`Error: Servidor rechazó movimiento espacial del Objeto #${layer.db_id} : ${errJson.message || 'Fallido'}`);
+                        }
+                    }).catch(e => {
+                        rollbackNeeded = true;
+                        alert('Error HTTP en Sincronización:' + e);
+                    });
+                promises.push(p);
             });
 
-        // Funciones para mostrar información
-        function mostrarInfoZona(props) {
-            document.getElementById('feature-info').innerHTML = `
-                <div class="feature-info">
-                    <h6>🏠 Zona</h6>
-                    <p><strong>ID:</strong> ${props.id}</p>
-                    <p><strong>Nombre:</strong> ${props.nombre}</p>
-                    <p><strong>Tipo:</strong> ${props.tipo_zona}</p>
-                    <p><strong>Área:</strong> ${props.area} m²</p>
-                    <p><strong>Responsable:</strong> ${props.responsable}</p>
-                </div>
-            `;
+            await Promise.all(promises);
+
+            // Reconstruimos el canvas por seguridad (Sea que falle para dar rollback, o sea que gane para traer estado limpio)
+            loadGeoData(); 
+            if(rollbackNeeded) {
+                console.log("Aplicando Rollback Visual...");
+            }
+        });
+
+        // Insert Events (Draw)
+        map.on(L.Draw.Event.CREATED, function (e) {
+            pendingDrawType = e.layerType;
+            pendingDrawLayer = e.layer;
+            
+            let wktGeo = generateWKT(e.layer, pendingDrawType);
+            if(!wktGeo){ alert("Geometría Invalida"); return; }
+            
+            // Render modal inputs dynamically depending on draw type
+            let modalHTML = `<input type="hidden" id="geoWKT" value="${wktGeo}">`;
+
+            if(pendingDrawType === 'polygon'){
+                document.getElementById('modalTitle').innerText = 'Guardar Zona';
+                modalHTML += `
+                    <div class="mb-3"><label>Nombre <span class="text-danger">*</span></label><input type="text" id="ipt-nombre" class="form-control" value="" required></div>
+                    <div class="mb-3"><label>Tipo de Uso <span class="text-muted" style="font-size:0.75rem">(Opcional)</span></label>
+                        <select id="ipt-tipo" class="form-select">
+                            <option value="No especificado">No especificado</option>
+                            <option value="Comercial">Comercial</option>
+                            <option value="Conservacion">Conservación</option>
+                            <option value="Recreativa">Recreativa</option>
+                            <option value="Otros">Otros</option>
+                        </select>
+                    </div>
+                    <div class="mb-3"><label>Área (m²) <span class="text-muted" style="font-size:0.75rem">(Autocompletado Servidor)</span></label><input type="number" step="0.01" id="ipt-area" disabled class="form-control" value="" placeholder="Cálculo DB Interno"></div>
+                    <div class="mb-3"><label>Perímetro <span class="text-muted" style="font-size:0.75rem">(Autocompletado Servidor)</span></label><input type="number" step="0.01" id="ipt-perimetro" disabled class="form-control" value="" placeholder="Cálculo DB Interno"></div>
+                    <div class="mb-3"><label>Responsable <span class="text-muted" style="font-size:0.75rem">(Opcional)</span></label><input type="text" id="ipt-resp" class="form-control" value=""></div>
+                `;
+            } else if (pendingDrawType === 'polyline'){
+                document.getElementById('modalTitle').innerText = 'Guardar Camino';
+                modalHTML += `
+                    <div class="mb-3"><label>Nombre <span class="text-danger">*</span></label><input type="text" id="ipt-nombre" class="form-control" value="" required></div>
+                    <div class="mb-3"><label>Dificultad <span class="text-muted" style="font-size:0.75rem">(Opcional)</span></label>
+                        <select id="ipt-dif" class="form-select">
+                            <option value="No especificada">No especificada</option>
+                            <option value="Baja">Baja</option>
+                            <option value="Media">Media</option>
+                            <option value="Alta">Alta</option>
+                        </select>
+                    </div>
+                    <div class="mb-3"><label>Longitud (m) <span class="text-muted" style="font-size:0.75rem">(Autocompletado Servidor)</span></label><input type="number" step="0.01" id="ipt-long" disabled class="form-control" value="" placeholder="Cálculo DB Interno"></div>
+                    <div class="mb-3"><label>Ancho (m) <span class="text-muted" style="font-size:0.75rem">(Opcional)</span></label><input type="number" step="0.01" id="ipt-ancho" class="form-control" value=""></div>
+                    <div class="mb-3"><label>Material <span class="text-muted" style="font-size:0.75rem">(Opcional)</span></label><input type="text" id="ipt-mat" class="form-control" value=""></div>
+                `;
+            } else if (pendingDrawType === 'marker'){
+                document.getElementById('modalTitle').innerText = 'Guardar Árbol';
+                modalHTML += `
+                    <div class="mb-3"><label>Especie <span class="text-danger">*</span></label><input type="text" id="ipt-esp" class="form-control" value="" required></div>
+                    <div class="mb-3"><label>Estado <span class="text-muted" style="font-size:0.75rem">(Opcional)</span></label>
+                        <select id="ipt-est" class="form-select">
+                            <option value="Sano" selected>Sano</option>
+                            <option value="Regular">Regular</option>
+                            <option value="Decadente">Decadente</option>
+                            <option value="Muerto">Muerto</option>
+                            <option value="No especificado">No especificado</option>
+                        </select>
+                    </div>
+                    <div class="row">
+                        <div class="col-4 mb-3"><label>Altura (m) <span class="text-muted" style="font-size:0.7rem">(Op)</span></label><input type="number" step="0.01" id="ipt-alt" class="form-control" value=""></div>
+                        <div class="col-4 mb-3"><label>Diámetro <span class="text-muted" style="font-size:0.7rem">(Op)</span></label><input type="number" step="0.01" id="ipt-dia" class="form-control" value=""></div>
+                        <div class="col-4 mb-3"><label>Edad <span class="text-muted" style="font-size:0.7rem">(Op)</span></label><input type="number" step="1" id="ipt-edad" class="form-control" value=""></div>
+                    </div>
+                `;
+            }
+            document.getElementById('modalBodyInputs').innerHTML = modalHTML;
+            attributesModal.show();
+        });
+
+        // Event listener for saving (New AND Updates)
+        document.getElementById('btn-save-attributes').addEventListener('click', async () => {
+            const wktGeo = document.getElementById('geoWKT').value;
+            const isUpdate = (wktGeo === "existing_update");
+
+            let payload = {};
+            if(!isUpdate) payload.geom = wktGeo; 
+
+            let endpointAPI = '';
+            let method = isUpdate ? 'PUT' : 'POST';
+
+            try {
+                if(pendingDrawType === 'polygon'){
+                    endpointAPI = isUpdate ? 'zonas/' + currentSelectedFeature.id : 'zonas';
+                    payload.nombre = document.getElementById('ipt-nombre').value;
+                    payload.tipo = document.getElementById('ipt-tipo').value;
+                    if(document.getElementById('ipt-resp').value) payload.responsable = document.getElementById('ipt-resp').value;
+                } else if (pendingDrawType === 'polyline'){
+                    endpointAPI = isUpdate ? 'caminos/' + currentSelectedFeature.id : 'caminos';
+                    payload.nombre = document.getElementById('ipt-nombre').value;
+                    payload.dificultad = document.getElementById('ipt-dif').value;
+                    payload.material = document.getElementById('ipt-mat').value;
+                    if(document.getElementById('ipt-ancho').value) payload.ancho = parseFloat(document.getElementById('ipt-ancho').value);
+                } else if (pendingDrawType === 'marker'){
+                    endpointAPI = isUpdate ? 'arboles/' + currentSelectedFeature.id : 'arboles';
+                    payload.especie = document.getElementById('ipt-esp').value;
+                    payload.estado = document.getElementById('ipt-est').value;
+                    if(document.getElementById('ipt-alt').value) payload.altura = parseFloat(document.getElementById('ipt-alt').value);
+                    if(document.getElementById('ipt-dia').value) payload.diametro = parseFloat(document.getElementById('ipt-dia').value);
+                    if(document.getElementById('ipt-edad').value) payload.edad = parseInt(document.getElementById('ipt-edad').value);
+                }
+
+                const rsp = await fetchAPI(endpointAPI, method, payload);
+                
+                if (rsp.ok) {
+                    attributesModal.hide();
+                    loadGeoData(); // Refresh Map
+                    if(isUpdate) {
+                       document.getElementById('edit-controls').style.display = 'none';
+                       document.getElementById('feature-info').innerHTML = '<p class="text-success">Atributos actualizados.</p>';
+                    }
+                } else {
+                    const respJson = await rsp.json();
+                    alert(`El sistema rechazó el trazo: ${respJson.message || JSON.stringify(respJson)}`);
+                }
+            } catch(e) {
+                alert(`Error HTTP (posible falta de sesión o token CSRF). Código: ${e}`);
+            }
+        });
+
+        // WKT Converter utility
+        function generateWKT(layer, type) {
+            if(type === 'marker') {
+                return `POINT (${layer.getLatLng().lng} ${layer.getLatLng().lat})`;
+            } else if (type === 'polyline') {
+                const lnglats = layer.getLatLngs().map(latlng => `${latlng.lng} ${latlng.lat}`).join(', ');
+                return `LINESTRING (${lnglats})`;
+            } else if (type === 'polygon') {
+                let lnglats = layer.getLatLngs()[0].map(latlng => `${latlng.lng} ${latlng.lat}`);
+                lnglats.push(`${layer.getLatLngs()[0][0].lng} ${layer.getLatLngs()[0][0].lat}`); // close ring
+                return `POLYGON ((${lnglats.join(', ')}))`;
+            }
+            return null;
         }
 
-        function mostrarInfoCamino(props) {
-            document.getElementById('feature-info').innerHTML = `
-                <div class="feature-info">
-                    <h6>🚶 Camino</h6>
-                    <p><strong>ID:</strong> ${props.id}</p>
-                    <p><strong>Nombre:</strong> ${props.nombre}</p>
-                    <p><strong>Dificultad:</strong> ${props.dificultad}</p>
-                    <p><strong>Longitud:</strong> ${props.longitud} m</p>
-                    <p><strong>Material:</strong> ${props.material}</p>
-                </div>
-            `;
-        }
-
-        function mostrarInfoArbol(props) {
-            document.getElementById('feature-info').innerHTML = `
-                <div class="feature-info">
-                    <h6>🌳 Árbol</h6>
-                    <p><strong>ID:</strong> ${props.id}</p>
-                    <p><strong>Especie:</strong> ${props.especie}</p>
-                    <p><strong>Altura:</strong> ${props.altura} m</p>
-                    <p><strong>Edad:</strong> ${props.edad} años</p>
-                    <p><strong>Estado:</strong> ${props.estado}</p>
-                </div>
-            `;
-        }
-
-        // Control de capas
-        const overlays = {
-            "Zonas": zonasLayer,
-            "Caminos": caminosLayer,
-            "Árboles": arbolesLayer
-        };
-
-        L.control.layers(null, overlays).addTo(map);
     </script>
 </body>
 </html>

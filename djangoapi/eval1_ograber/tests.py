@@ -64,7 +64,7 @@ class ArbolValidationTest(APITestCase):
         """Test que los árboles deben estar dentro de una zona"""
         # Crear árbol dentro de la zona
         data = {
-            'nombre': 'Árbol Test',
+            'especie': 'Pino Test',
             'geom': 'POINT (-0.35 39.45)'
         }
 
@@ -75,10 +75,10 @@ class ArbolValidationTest(APITestCase):
         """Test que falla si el árbol está fuera de cualquier zona"""
         # Intentar crear árbol fuera de la zona
         data = {
-            'nombre': 'Árbol Fuera',
+            'especie': 'Roble Fuera',
             'geom': 'POINT (-0.1 39.45)'  # Fuera de la zona
         }
 
         response = self.client.post('/eval1_ograber/arboles/', data, format='json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn('debe estar dentro', str(response.data))
+        self.assertIn('fuera de las zonas', str(response.data))
