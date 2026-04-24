@@ -63,15 +63,18 @@ services:
   djangoapi:
     restart: unless-stopped
     #the folder of the Django project
-    build: 
+    build:
       context: ./djangoapi
       args:
         - USER_ID=${DJANGOAPI_USER_ID}
         - GROUP_ID=${DJANGOAPI_GROUP_ID}
         - USERNAME=${DJANGOAPI_USERNAME}
 
+    external_links:
+      - joamona-dj-api-postgis-1:postgis
+
     command: gunicorn djangoapi.wsgi:application --bind 0.0.0.0:8000
-#    command: python manage.py runserver 0.0.0.0:8000
+    #    command: python manage.py runserver 0.0.0.0:8000
     volumes:
       - ./djangoapi:/usr/src/app
     ports:
@@ -81,9 +84,9 @@ services:
     networks:
       - joamona-dj-api_postgis
 networks:
-   joamona-dj-api_postgis:
-      driver: bridge
-      external: true
+  joamona-dj-api_postgis:
+    driver: bridge
+    external: true
 #coment
 volumes:
   postgis-data:
