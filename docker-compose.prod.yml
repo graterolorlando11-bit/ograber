@@ -79,7 +79,7 @@ services:
     env_file:
       - .env.prod
     networks:
-      - joamona/dj/api_postgis
+      - joamona-dj-api_postgis
 
     #to ckeck if postgres is already ready. This service
     #will not start up to the posgis service is ready
@@ -87,7 +87,7 @@ services:
       postgis:
         condition: service_healthy
 networks:
-   joamona/dj/api_postgis:
+   joamona-dj-api_postgis:
       driver: bridge
       external: true
 #coment
