@@ -94,12 +94,12 @@ pgadmin4_prod
 #geoserver data
 geoserver-data
 
-#migration files for the django project
-migrations/*
-**/migrations/*
-#keep the __init__.py files in the migration folders
-!migrations/__init__.py
-!**/migrations/__init__.py
+# #migration files for the django project
+# migrations/*
+# **/migrations/*
+# #keep the __init__.py files in the migration folders
+# !migrations/__init__.py
+# !**/migrations/__init__.py
 
 djangoapi/.dotnet
 djangoapi/.vscode-server
