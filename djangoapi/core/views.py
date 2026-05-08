@@ -24,7 +24,8 @@ def custom_logout_view(request):
 
 def notLoggedIn(request):
     from django.shortcuts import redirect
-    return redirect('/core/login/')
+    # return redirect('/core/login/')
+    return redirect('core_login')
 
 class HelloWord(View):
     def get(self, request):
@@ -34,7 +35,8 @@ class RegisterView(View):
     def get(self, request, *args, **kwargs):
         from django.shortcuts import render, redirect
         if request.user.is_authenticated:
-            return redirect('/eval1_ograber/mapa/')
+            # return redirect('/eval1_ograber/mapa/')
+            return redirect('mapa')
         return render(request, 'core/registro.html')
 
     def post(self, request, *args, **kwargs):
@@ -59,7 +61,8 @@ class LoginView(View):
     def get(self, request, *args, **kwargs):
         from django.shortcuts import render, redirect
         if request.user.is_authenticated:
-            return redirect('/eval1_ograber/mapa/')
+            # return redirect('/eval1_ograber/mapa/')
+            return redirect('mapa')
         return render(request, 'core/login.html')
 
     def post(self, request, *args, **kwargs):
@@ -71,7 +74,8 @@ class LoginView(View):
 
         if user:
             login(request, user)
-            return redirect('/eval1_ograber/mapa/')
+            # return redirect('/eval1_ograber/mapa/')
+            return redirect('mapa')
         else:
             time.sleep(random.uniform(0, 1)) # Delay de seguridad
             return render(request, 'core/login.html', {'error': 'Usuario o contraseña incorrectos'})
@@ -82,7 +86,8 @@ class LogoutView(LoginRequiredMixin, View):
         from django.shortcuts import redirect
         logout(request) #removes from the header of the request
                             #the the session_id, stored in a cookie
-        return redirect('/core/login/')
+        # return redirect('/core/login/')
+        return redirect('core_login')
 
 class ProfileView(LoginRequiredMixin, View):
     def get(self, request, *args, **kwargs):
@@ -124,7 +129,8 @@ class ProfileView(LoginRequiredMixin, View):
         elif action == 'delete_account':
             request.user.delete()
             logout(request)
-            return redirect('/core/login/')
+            # return redirect('/core/login/')
+            return redirect('core_login')
 
         logs = UserActionLog.objects.filter(user=request.user).order_by('-timestamp')[:50]
         return render(request, 'core/perfil.html', {'logs': logs, 'error': error, 'success': success})

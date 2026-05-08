@@ -178,13 +178,15 @@
             if (payload) {
                 options.body = JSON.stringify(payload);
             }
-            const rsp = await fetch(`/eval1_ograber/${endpoint}/`, options);
+            // const rsp = await fetch(`/eval1_ograber/${endpoint}/`, options);
+            const rsp = await fetch(`../${endpoint}/`, options);
             return rsp;
         }
 
         function loadGeoData() {
             editableLayers.clearLayers();
-            fetch('/eval1_ograber/datos-geo/')
+            // fetch('/eval1_ograber/datos-geo/')
+            fetch('{% url "datos_geo" %}')
                 .then(r => r.json())
                 .then(data => {
                     data.features.forEach(feature => {
