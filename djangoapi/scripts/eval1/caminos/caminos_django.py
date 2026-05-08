@@ -24,7 +24,7 @@ class CaminosDjango:
                 return {'ok': False, 'message': f"El camino {d.get('nombre','')} se cruza con otro", 'data': []}
 
             # Cálculo en base 30N
-            g_4326 = GEOSGeometry(geom_snapped, srid=4326)
+            g_4326 = GEOSGeometry(g.wkt, srid=4326)
             g_metric = g_4326.transform(25830, clone=True)
 
             # 3. Asignación algorítmica forzosa y guardado
@@ -49,7 +49,7 @@ class CaminosDjango:
                 if Camino.objects.filter(geom__intersects=g).exclude(id=d['id']).exists():
                     return {'ok': False, 'message': 'El camino se cruza', 'data': []}
                 
-                g_metric = GEOSGeometry(g.wkb, srid=4326).transform(25830, clone=True)
+                g_metric = GEOSGeometry(g.wkt, srid=4326).transform(25830, clone=True)
                 camino.geom = g
                 camino.longitud = round(g_metric.length, 2)
 

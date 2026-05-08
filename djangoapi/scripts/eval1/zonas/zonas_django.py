@@ -26,7 +26,7 @@ class ZonasDjango:
                 return {'ok': False, 'message': f"La zona {d.get('nombre', '')} se superpone", 'data': []}
 
             # Metric calculation via coordinate transformation (ETRS89 UTM 30N)
-            g_4326 = GEOSGeometry(geom_snapped, srid=4326)
+            g_4326 = GEOSGeometry(g.wkt, srid=4326)
             g_metric = g_4326.transform(25830, clone=True)
 
             # 4. Asignación algorítmica forzosa y guardado
@@ -55,9 +55,7 @@ class ZonasDjango:
                     return {'ok': False, 'message': 'La zona se superpone', 'data': []}
                 
                 # Transform to compute metrics
-                g_4326 = GEOSGeometry(cur.fetchone()[0] if 'cur.fetchone()[0]' in locals() else d['geom'], srid=4326)
-                # Note: cur.fetchone() is consumed from the overlapping query! We must use the original g
-                g_metric = GEOSGeometry(g.wkb, srid=4326).transform(25830, clone=True)
+                g_metric = GEOSGeometry(g.wkt, srid=4326).transform(25830, clone=True)
 
                 zona.geom = g
                 zona.area = round(g_metric.area, 2)
