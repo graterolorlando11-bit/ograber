@@ -1,6 +1,6 @@
 from rest_framework import viewsets, status
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 from eval1_ograber.models import Zona, Camino, Arbol, UserActionLog
 from eval1_ograber.serializers import ZonaSerializer, CaminoSerializer, ArbolSerializer
 from scripts.eval1.zonas.zonas_django import ZonasDjango
@@ -49,7 +49,7 @@ def log_audit_action(request, table, action, res, obj_id_fallback=None, before_s
 class ZonaViewSet(viewsets.ModelViewSet):
     queryset = Zona.objects.all()
     serializer_class = ZonaSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticatedOrReadOnly]
 
     def create(self, request, *args, **kwargs):
         d = request.data.copy()
@@ -86,7 +86,7 @@ class ZonaViewSet(viewsets.ModelViewSet):
 class CaminoViewSet(viewsets.ModelViewSet):
     queryset = Camino.objects.all()
     serializer_class = CaminoSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticatedOrReadOnly]
 
     def create(self, request, *args, **kwargs):
         res = CaminosDjango().insert(request.data.copy())
@@ -122,7 +122,7 @@ class CaminoViewSet(viewsets.ModelViewSet):
 class ArbolViewSet(viewsets.ModelViewSet):
     queryset = Arbol.objects.all()
     serializer_class = ArbolSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticatedOrReadOnly]
 
     def create(self, request, *args, **kwargs):
         res = ArbolesDjango().insert(request.data.copy())
