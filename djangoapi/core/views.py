@@ -5,6 +5,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import redirect
 import random, time
+import json
 
 """
 Código	Nombre	Uso típico
@@ -143,3 +144,51 @@ class IsLoggedIn(View):
             return JsonResponse({"ok":True,"message": "You are authenticated", "data":[{'username':request.user.username}]}, status=200)
         else:
             return JsonResponse({"ok":False,"message": "You are not authenticated", "data":[]}, status=400)
+
+# ENDPOINTS PARA ANGULAR
+
+class ApiLoginView(View):
+    """
+    Endpoint exclusivo para Angular.
+    Recibe JSON, autentica por cookie y devuelve JSON.
+    """
+    def post(self, request, *args, **kwargs):
+        # Angular suele enviar los datos en el body de la petición
+        try:
+            data = json.loads(request.body)
+            username = data.get('username')
+            password = data.get('password')
+        except json.JSONDecodeError:
+            # Por si acaso se envían como Form Data tradicional
+            username = request.POST.get('username')
+            password = request.POST.get('password')
+
+        user = authenticate(username=username, password=password)
+
+        if user:
+            login(request, user) # Esto es clave: genera la cookie sessionid
+            return JsonResponse({
+                "ok": True, 
+                "message": f"Bienvenido {user.username}", 
+                "data": [{"username": user.username}]
+            }, status=200)
+        else:
+            time.sleep(random.uniform(0, 1)) # Delay de seguridad que ya tenías
+            return JsonResponse({
+                "ok": False, 
+                "message": "Usuario o contraseña incorrectos", 
+                "data": []
+            }, status=401)
+
+class ApiLogoutView(View):
+    """
+    Endpoint exclusivo para Angular.
+    Destruye la cookie de sesión y devuelve JSON.
+    """
+    def post(self, request, *args, **kwargs):
+        logout(request)
+        return JsonResponse({
+            "ok": True, 
+            "message": "Sesión cerrada correctamente", 
+            "data": []
+        }, status=200)

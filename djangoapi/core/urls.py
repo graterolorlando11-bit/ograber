@@ -23,4 +23,10 @@ urlpatterns = [
     path('is_valid_token/', viewsKnoxLoginManagenent.IsValidToken.as_view(), name='is_valid_token'),
     path('logout_all_user_sessions/', viewsKnoxLoginManagenent.LogoutAllUserSessionsView.as_view(), name='logout_all_user_sessions'),
     path('logout_all_users_sessions/', viewsKnoxLoginManagenent.LogoutAllUsersSessionsView.as_view(), name='logout_all_users_sessionst'),
+
+    # PARTE DE ANGULAR
+    # Nuevas rutas para la SPA (Angular)
+    path('api_login/', views.ApiLoginView.as_view(), name="api_login_json"),
+    path('api_logout/', views.ApiLogoutView.as_view(), name="api_logout_json"),
+    path('isloggedin/', views.IsLoggedIn.as_view(), name="api_isloggedin"),
 ]
