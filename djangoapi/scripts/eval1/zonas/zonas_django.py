@@ -20,8 +20,8 @@ class ZonasDjango:
             if not g.valid:
                 return {'ok': False, 'message': 'Geometría inválida', 'data': []}
 
-            # 3. Restricción: Comprobar superposición usando ST_Overlaps
-            cur.execute(f"SELECT COUNT(*) FROM {Zona._meta.db_table} WHERE ST_Overlaps(geom, ST_GeomFromText(%s, 25830))", [g.wkt])
+            # 3. Restricción: Comprobar superposición usando ST_Intersects
+            cur.execute(f"SELECT COUNT(*) FROM {Zona._meta.db_table} WHERE ST_Intersects(geom, ST_GeomFromText(%s, 25830))", [g.wkt])
             if cur.fetchone()[0] > 0:
                 return {'ok': False, 'message': f"La zona {d.get('nombre', '')} se superpone", 'data': []}
 
@@ -50,7 +50,7 @@ class ZonasDjango:
                 g = GEOSGeometry(cur.fetchone()[0], srid=25830)
 
                 # Comprobamos solapamiento excluyendo la propia zona
-                cur.execute(f"SELECT COUNT(*) FROM {Zona._meta.db_table} WHERE id != %s AND ST_Overlaps(geom, ST_GeomFromText(%s, 25830))", [d['id'], g.wkt])
+                cur.execute(f"SELECT COUNT(*) FROM {Zona._meta.db_table} WHERE id != %s AND ST_Intersects(geom, ST_GeomFromText(%s, 25830))", [d['id'], g.wkt])
                 if cur.fetchone()[0] > 0:
                     return {'ok': False, 'message': 'La zona se superpone', 'data': []}
                 
