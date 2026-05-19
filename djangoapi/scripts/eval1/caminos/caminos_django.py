@@ -55,6 +55,8 @@ class CaminosDjango:
 
             if 'nombre' in d: camino.nombre = d['nombre']
             if 'dificultad' in d: camino.dificultad = d['dificultad']
+            if 'ancho' in d: camino.ancho = d['ancho']
+            if 'material' in d: camino.material = d['material']
             camino.save()
             return {'ok': True, 'message': 'Camino actualizado', 'data': [{'id': camino.id}]}
         except Camino.DoesNotExist:

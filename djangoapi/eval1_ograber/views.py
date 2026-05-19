@@ -105,7 +105,8 @@ class CaminoViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticatedOrReadOnly]
 
     def create(self, request, *args, **kwargs):
-        res = CaminosDjango().insert(request.data.copy())
+        d = dict(request.data.items())
+        res = CaminosDjango().insert(d)
         if res.get('ok'):
             pk = res['data'][0]['id']
             after_state = get_db_dict('caminos', pk)
@@ -114,9 +115,22 @@ class CaminoViewSet(viewsets.ModelViewSet):
         return Response(res, status=status.HTTP_400_BAD_REQUEST)
 
     def update(self, request, *args, **kwargs):
-        d = request.data.copy()
+        d = dict(request.data.items()) 
         pk = kwargs.get('pk')
         if 'id' not in d: d['id'] = pk
+        
+        # 🪄 EL DESENTRAÑADOR MÁGICO TAMBIÉN PARA CAMINOS
+        for k in list(d.keys()):
+            if k.strip().startswith('{') and k.strip().endswith('}'):
+                try:
+                    datos_reales = json.loads(k)
+                    d.update(datos_reales)
+                    del d[k]
+                except Exception:
+                    pass
+
+        print("DATOS PROCESADOS Y LIMPIOS EN CAMINOS (PUT):", d)
+        
         before_state = get_db_dict('caminos', pk)
         res = CaminosDjango().update(d)
         if res.get('ok'):
