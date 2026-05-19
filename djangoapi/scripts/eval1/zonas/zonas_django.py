@@ -63,6 +63,7 @@ class ZonasDjango:
 
             if 'nombre' in d: zona.nombre = d['nombre']
             if 'tipo' in d: zona.tipo = d['tipo']
+            if 'responsable' in d: zona.responsable = d['responsable']
             zona.save()
             return {'ok': True, 'message': 'Zona actualizada', 'data': [{'id': zona.id}]}
         except Zona.DoesNotExist:

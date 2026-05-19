@@ -62,9 +62,25 @@ class ZonaViewSet(viewsets.ModelViewSet):
         return Response(res, status=status.HTTP_400_BAD_REQUEST)
 
     def update(self, request, *args, **kwargs):
-        d = dict(request.data.items())
+        d = dict(request.data.items()) 
         pk = kwargs.get('pk')
         if 'id' not in d: d['id'] = pk
+        
+        # 🪄 EL DESENTRAÑADOR MÁGICO:
+        # Si los datos llegaron camuflados como una sola clave JSON por culpa del formato urlencoded,
+        # los detectamos, los descomprimimos y limpiamos el diccionario.
+        for k in list(d.keys()):
+            if k.strip().startswith('{') and k.strip().endswith('}'):
+                try:
+                    datos_reales = json.loads(k)
+                    d.update(datos_reales) # Mete 'nombre', 'tipo' y 'responsable' como llaves limpias
+                    del d[k] # Borra la clave gigante fea
+                except Exception:
+                    pass
+
+        # Dejamos este print para que veas en la terminal cómo se ha limpiado el objeto
+        print("DATOS PROCESADOS Y LIMPIOS EN PYTHON:", d)
+        
         before_state = get_db_dict('zonas', pk)
         res = ZonasDjango().update(d)
         if res.get('ok'):
