@@ -52,7 +52,7 @@ class ZonaViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticatedOrReadOnly]
 
     def create(self, request, *args, **kwargs):
-        d = request.data.copy()
+        d = dict(request.data.items())
         res = ZonasDjango().insert(d)
         if res.get('ok'):
             pk = res['data'][0]['id']
@@ -62,7 +62,7 @@ class ZonaViewSet(viewsets.ModelViewSet):
         return Response(res, status=status.HTTP_400_BAD_REQUEST)
 
     def update(self, request, *args, **kwargs):
-        d = request.data.copy()
+        d = dict(request.data.items())
         pk = kwargs.get('pk')
         if 'id' not in d: d['id'] = pk
         before_state = get_db_dict('zonas', pk)
