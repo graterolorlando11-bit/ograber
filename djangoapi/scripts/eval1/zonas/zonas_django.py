@@ -29,7 +29,7 @@ class ZonasDjango:
             g_4326 = GEOSGeometry(g.wkt, srid=4326)
             g_metric = g_4326.transform(25830, clone=True)
 
-            # 4. Asignación algorítmica forzosa y guardado
+            # 4. Asignación y guardado
             d['geom'] = g 
             d['area'] = round(g_metric.area, 2)
             d['perimetro'] = round(g_metric.length, 2)

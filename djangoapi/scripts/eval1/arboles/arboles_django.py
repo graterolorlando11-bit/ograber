@@ -53,6 +53,9 @@ class ArbolesDjango:
             # 3. Actualizamos los demás datos si vienen en el diccionario
             if 'especie' in d: arbol.especie = d['especie']
             if 'estado' in d: arbol.estado = d['estado']
+            if 'altura' in d: arbol.altura = d['altura']
+            if 'diametro' in d: arbol.diametro = d['diametro']
+            if 'edad' in d: arbol.edad = d['edad']
             
             # 4. Guardar los cambios en la base de datos
             arbol.save()

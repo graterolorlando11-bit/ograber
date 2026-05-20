@@ -66,7 +66,6 @@ class ZonaViewSet(viewsets.ModelViewSet):
         pk = kwargs.get('pk')
         if 'id' not in d: d['id'] = pk
         
-        # 🪄 EL DESENTRAÑADOR MÁGICO:
         # Si los datos llegaron camuflados como una sola clave JSON por culpa del formato urlencoded,
         # los detectamos, los descomprimimos y limpiamos el diccionario.
         for k in list(d.keys()):
@@ -119,7 +118,6 @@ class CaminoViewSet(viewsets.ModelViewSet):
         pk = kwargs.get('pk')
         if 'id' not in d: d['id'] = pk
         
-        # 🪄 EL DESENTRAÑADOR MÁGICO TAMBIÉN PARA CAMINOS
         for k in list(d.keys()):
             if k.strip().startswith('{') and k.strip().endswith('}'):
                 try:
@@ -155,7 +153,9 @@ class ArbolViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticatedOrReadOnly]
 
     def create(self, request, *args, **kwargs):
-        res = ArbolesDjango().insert(request.data.copy())
+        # EVITA EL ERROR DE LISTAS
+        d = dict(request.data.items()) 
+        res = ArbolesDjango().insert(d)
         if res.get('ok'):
             pk = res['data'][0]['id']
             after_state = get_db_dict('arboles', pk)
@@ -164,9 +164,23 @@ class ArbolViewSet(viewsets.ModelViewSet):
         return Response(res, status=status.HTTP_400_BAD_REQUEST)
 
     def update(self, request, *args, **kwargs):
-        d = request.data.copy()
+        # EVITA EL ERROR DE LISTAS
+        d = dict(request.data.items())
         pk = kwargs.get('pk')
         if 'id' not in d: d['id'] = pk
+        
+        # Descomprime el JSON gigante si viaja en la clave
+        for k in list(d.keys()):
+            if k.strip().startswith('{') and k.strip().endswith('}'):
+                try:
+                    datos_reales = json.loads(k)
+                    d.update(datos_reales)
+                    del d[k]
+                except Exception:
+                    pass
+
+        print("DATOS PROCESADOS Y LIMPIOS EN ÁRBOLES (PUT):", d)
+        
         before_state = get_db_dict('arboles', pk)
         res = ArbolesDjango().update(d)
         if res.get('ok'):
